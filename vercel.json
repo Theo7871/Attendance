@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build -w apps/api",
+  "outputDirectory": "apps/api",
+  "functions": {
+    "apps/api/api/index.ts": {
+      "maxDuration": 30
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "apps/api/api/index.ts"
+    }
+  ]
+}
