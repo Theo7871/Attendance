@@ -7,7 +7,15 @@ import usersRoutes from "./routes/users.js";
 
 export const app = express();
 
-app.use(cors());
+const corsOptions: cors.CorsOptions = {
+  origin: true,
+  methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 
 app.get("/", (_req, res) => {
