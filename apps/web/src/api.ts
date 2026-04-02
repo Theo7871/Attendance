@@ -1,4 +1,6 @@
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000/api";
+const rawApiBase = import.meta.env.VITE_API_BASE || "http://localhost:4000";
+const normalizedApiBase = rawApiBase.replace(/\/+$/, "");
+const API_BASE = normalizedApiBase.endsWith("/api") ? normalizedApiBase : `${normalizedApiBase}/api`;
 
 type RequestOptions = {
   method?: string;
@@ -7,7 +9,8 @@ type RequestOptions = {
 };
 
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const response = await fetch(`${API_BASE}${normalizedPath}`, {
     method: options.method || "GET",
     headers: {
       "Content-Type": "application/json",
