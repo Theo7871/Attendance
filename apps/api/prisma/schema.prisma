@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+enum WorkMode {
+  OFFICE
+  WFH
+}
+
+model User {
+  id            String             @id @default(cuid())
+  fullName      String
+  email         String             @unique
+  passwordHash  String
+  role          Role               @default(STAFF)
+  wfhEnabled    Boolean            @default(true)
+  homeLatitude  Float?
+  homeLongitude Float?
+  isActive      Boolean            @default(true)
+  isApproved    Boolean            @default(false)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  attendances   Attendance[]
+  redemptions   WfhCodeRedemption[]
+}
+
+model Attendance {
+  id               String    @id @default(cuid())
+  userId           String
+  date             DateTime
+  clockInAt        DateTime?
+  clockOutAt       DateTime?
+  clockInLat       Float?
+  clockInLng       Float?
+  clockOutLat      Float?
+  clockOutLng      Float?
+  clockInIp        String?
+  clockOutIp       String?
+  clockInMode      WorkMode?
+  clockOutMode     WorkMode?
+  totalMinutes     Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model DailyWfhCode {
+  id            String              @id @default(cuid())
+  codeHash      String
+  validFrom     DateTime
+  expiresAt     DateTime
+  createdById   String
+  isRevoked     Boolean             @default(false)
+  createdAt     DateTime            @default(now())
+  redemptions   WfhCodeRedemption[]
+}
+
+model WfhCodeRedemption {
+  id          String       @id @default(cuid())
+  userId      String
+  dailyCodeId String
+  redeemedAt  DateTime     @default(now())
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dailyCode   DailyWfhCode @relation(fields: [dailyCodeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dailyCodeId])
+}
