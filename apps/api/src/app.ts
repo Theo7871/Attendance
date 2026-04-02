@@ -10,6 +10,10 @@ export const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get("/", (_req, res) => {
+  res.json({ name: "Attendance API", status: "ok" });
+});
+
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
