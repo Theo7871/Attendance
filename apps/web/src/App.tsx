@@ -122,6 +122,14 @@ export default function App() {
     return staffList;
   }, [staffFilter, staffList]);
 
+  const pendingApprovalUsers = useMemo(() => {
+    const fromStaffList = staffList.filter((staff) => staff.isApproved === false);
+    if (fromStaffList.length > 0) {
+      return fromStaffList;
+    }
+    return pendingUsers;
+  }, [staffList, pendingUsers]);
+
   useEffect(() => {
     if (!token || !user) return;
 
@@ -576,12 +584,12 @@ export default function App() {
           </div>
 
           <div className="card p-5 space-y-3">
-            <h3 className="text-lg font-semibold">Pending User Approvals ({pendingUsers.length})</h3>
-            {pendingUsers.length === 0 ? (
+            <h3 className="text-lg font-semibold">Pending User Approvals ({pendingApprovalUsers.length})</h3>
+            {pendingApprovalUsers.length === 0 ? (
               <p className="text-sm text-slate-600">No pending approvals.</p>
             ) : (
               <div className="space-y-2">
-                {pendingUsers.map((pending) => (
+                {pendingApprovalUsers.map((pending) => (
                   <div key={pending.id} className="rounded border border-slate-200 p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
                       <p className="font-semibold">{pending.fullName}</p>
