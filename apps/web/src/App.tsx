@@ -130,6 +130,17 @@ export default function App() {
     return pendingUsers;
   }, [staffList, pendingUsers]);
 
+  function resetSessionWithMessage(text: string) {
+    setToken(null);
+    setUser(null);
+    setAttendance(null);
+    setStaffList([]);
+    setPendingUsers([]);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setMessage(text);
+  }
+
   useEffect(() => {
     if (!token || !user) return;
 
@@ -203,8 +214,17 @@ export default function App() {
 
   async function loadToday(currentToken = token) {
     if (!currentToken) return;
-    const data = await api<Attendance | null>("/attendance/today", { token: currentToken });
-    setAttendance(data);
+    try {
+      const data = await api<Attendance | null>("/attendance/today", { token: currentToken });
+      setAttendance(data);
+    } catch (error) {
+      const msg = (error as Error).message;
+      if (/invalid token|missing bearer token/i.test(msg)) {
+        resetSessionWithMessage("Session expired. Please sign in again.");
+        return;
+      }
+      throw error;
+    }
   }
 
   async function submit(type: "clock-in" | "clock-out") {
@@ -238,21 +258,48 @@ export default function App() {
 
   async function loadStaffs(currentToken = token) {
     if (!currentToken) return;
-    const users = await api<User[]>("/users", { token: currentToken });
-    setStaffList(users);
-    setPendingUsers(users.filter((x) => x.isApproved !== true));
+    try {
+      const users = await api<User[]>("/users", { token: currentToken });
+      setStaffList(users);
+      setPendingUsers(users.filter((x) => x.isApproved !== true));
+    } catch (error) {
+      const msg = (error as Error).message;
+      if (/invalid token|missing bearer token/i.test(msg)) {
+        resetSessionWithMessage("Session expired. Please sign in again.");
+        return;
+      }
+      throw error;
+    }
   }
 
   async function loadPendingUsers(currentToken = token) {
     if (!currentToken) return;
-    const users = await api<User[]>("/users/pending", { token: currentToken });
-    setPendingUsers(users);
+    try {
+      const users = await api<User[]>("/users/pending", { token: currentToken });
+      setPendingUsers(users);
+    } catch (error) {
+      const msg = (error as Error).message;
+      if (/invalid token|missing bearer token/i.test(msg)) {
+        resetSessionWithMessage("Session expired. Please sign in again.");
+        return;
+      }
+      throw error;
+    }
   }
 
   async function loadReport(currentToken = token, date = reportDate) {
     if (!currentToken) return;
-    const rows = await api<Attendance[]>(`/admin/attendance?date=${date}`, { token: currentToken });
-    setReportRows(rows);
+    try {
+      const rows = await api<Attendance[]>(`/admin/attendance?date=${date}`, { token: currentToken });
+      setReportRows(rows);
+    } catch (error) {
+      const msg = (error as Error).message;
+      if (/invalid token|missing bearer token/i.test(msg)) {
+        resetSessionWithMessage("Session expired. Please sign in again.");
+        return;
+      }
+      throw error;
+    }
   }
 
   async function fillCreateLocationFromCurrent() {
