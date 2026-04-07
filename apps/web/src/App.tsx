@@ -64,8 +64,15 @@ function useGeolocation() {
 }
 
 export default function App() {
-  const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem("token"));
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const stored = localStorage.getItem("user");
+      return stored ? (JSON.parse(stored) as User) : null;
+    } catch {
+      return null;
+    }
+  });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -120,6 +127,8 @@ export default function App() {
       });
       setToken(result.token);
       setUser(result.user);
+      localStorage.setItem("token", result.token);
+      localStorage.setItem("user", JSON.stringify(result.user));
       setMessage("Login successful.");
       await loadToday(result.token);
 
@@ -452,6 +461,8 @@ export default function App() {
               setToken(null);
               setUser(null);
               setAttendance(null);
+              localStorage.removeItem("token");
+              localStorage.removeItem("user");
             }}
           >
             Sign Out
