@@ -123,7 +123,7 @@ export default function App() {
   }, [staffFilter, staffList]);
 
   const pendingApprovalUsers = useMemo(() => {
-    const fromStaffList = staffList.filter((staff) => staff.isApproved === false);
+    const fromStaffList = staffList.filter((staff) => staff.isApproved !== true);
     if (fromStaffList.length > 0) {
       return fromStaffList;
     }
@@ -240,6 +240,7 @@ export default function App() {
     if (!currentToken) return;
     const users = await api<User[]>("/users", { token: currentToken });
     setStaffList(users);
+    setPendingUsers(users.filter((x) => x.isApproved !== true));
   }
 
   async function loadPendingUsers(currentToken = token) {
