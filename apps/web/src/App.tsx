@@ -603,6 +603,44 @@ export default function App() {
       {user.role === "ADMIN" && (
         <div className="space-y-4">
           <div className="card p-5 space-y-3">
+            <h3 className="text-lg font-semibold">Staff Attendance Report</h3>
+            <div className="flex flex-wrap gap-2 items-center">
+              <input className="input" type="date" value={reportDate} onChange={(e) => setReportDate(e.target.value)} />
+              <button className="btn btn-primary" onClick={() => loadReport(token, reportDate)}>
+                View Report
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left border-b border-slate-200">
+                    <th className="py-2">Name</th>
+                    <th className="py-2">Email</th>
+                    <th className="py-2">Clock In</th>
+                    <th className="py-2">Clock Out</th>
+                    <th className="py-2">Hours</th>
+                    <th className="py-2">Mode</th>
+                    <th className="py-2">Work Update</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reportRows.map((row) => (
+                    <tr key={row.id} className="border-b border-slate-100">
+                      <td className="py-2">{row.user?.fullName || "-"}</td>
+                      <td className="py-2">{row.user?.email || "-"}</td>
+                      <td className="py-2">{row.clockInAt ? new Date(row.clockInAt).toLocaleTimeString() : "-"}</td>
+                      <td className="py-2">{row.clockOutAt ? new Date(row.clockOutAt).toLocaleTimeString() : "-"}</td>
+                      <td className="py-2">{((row.totalMinutes || 0) / 60).toFixed(2)}</td>
+                      <td className="py-2">{row.clockOutMode || row.clockInMode || "-"}</td>
+                      <td className="py-2 max-w-64 truncate" title={row.workUpdate || ""}>{row.workUpdate || "-"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="card p-5 space-y-3">
             <h3 className="text-lg font-semibold">Admin Panel</h3>
             <div className="flex flex-wrap gap-2">
               <button className="btn btn-primary" onClick={generateCode}>
@@ -879,41 +917,6 @@ export default function App() {
             </div>
           </div>
 
-          <div className="card p-5 space-y-3">
-            <h3 className="text-lg font-semibold">Staff Attendance Report</h3>
-            <div className="flex flex-wrap gap-2 items-center">
-              <input className="input" type="date" value={reportDate} onChange={(e) => setReportDate(e.target.value)} />
-              <button className="btn btn-primary" onClick={() => loadReport(token, reportDate)}>
-                View Report
-              </button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left border-b border-slate-200">
-                    <th className="py-2">Name</th>
-                    <th className="py-2">Email</th>
-                    <th className="py-2">Clock In</th>
-                    <th className="py-2">Clock Out</th>
-                    <th className="py-2">Hours</th>
-                    <th className="py-2">Mode</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reportRows.map((row) => (
-                    <tr key={row.id} className="border-b border-slate-100">
-                      <td className="py-2">{row.user?.fullName || "-"}</td>
-                      <td className="py-2">{row.user?.email || "-"}</td>
-                      <td className="py-2">{row.clockInAt ? new Date(row.clockInAt).toLocaleTimeString() : "-"}</td>
-                      <td className="py-2">{row.clockOutAt ? new Date(row.clockOutAt).toLocaleTimeString() : "-"}</td>
-                      <td className="py-2">{((row.totalMinutes || 0) / 60).toFixed(2)}</td>
-                      <td className="py-2">{row.clockOutMode || row.clockInMode || "-"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
         </div>
       )}
     </div>
