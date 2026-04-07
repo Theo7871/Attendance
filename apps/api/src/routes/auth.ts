@@ -74,7 +74,8 @@ router.post("/register", async (req, res) => {
   const schema = z.object({
     fullName: z.string().min(2),
     email: z.string().email(),
-    password: z.string().min(6)
+    password: z.string().min(6),
+    wfhEnabled: z.boolean().optional().default(true)
   });
 
   const parsed = schema.safeParse(req.body);
@@ -95,6 +96,7 @@ router.post("/register", async (req, res) => {
       email: parsed.data.email,
       passwordHash,
       role: "STAFF",
+      wfhEnabled: parsed.data.wfhEnabled,
       isApproved: false
     }
   });

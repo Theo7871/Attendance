@@ -22,6 +22,7 @@ type Attendance = {
   };
   clockInAt?: string;
   clockOutAt?: string;
+  workUpdate?: string;
   totalMinutes?: number;
   clockInMode?: "OFFICE" | "WFH";
   clockOutMode?: "OFFICE" | "WFH";
@@ -76,10 +77,12 @@ export default function App() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [signupWorkMode, setSignupWorkMode] = useState<"WFH" | "WFO">("WFH");
   const [message, setMessage] = useState("");
   const [isSigningUp, setIsSigningUp] = useState(false);
 
   const [wfhCode, setWfhCode] = useState("");
+  const [workUpdate, setWorkUpdate] = useState("");
   const [attendance, setAttendance] = useState<Attendance | null>(null);
 
   const [adminCode, setAdminCode] = useState<string | null>(null);
@@ -149,12 +152,18 @@ export default function App() {
     try {
       await api("/auth/register", {
         method: "POST",
-        body: { fullName, email, password }
+        body: {
+          fullName,
+          email,
+          password,
+          wfhEnabled: signupWorkMode === "WFH"
+        }
       });
       setMessage("Registration successful! Please wait for admin approval to login.");
       setFullName("");
       setEmail("");
       setPassword("");
+      setSignupWorkMode("WFH");
       setIsSigningUp(false);
     } catch (error) {
       setMessage((error as Error).message);
@@ -169,6 +178,11 @@ export default function App() {
 
   async function submit(type: "clock-in" | "clock-out") {
     if (!token) return;
+    if (type === "clock-out" && workUpdate.trim().length < 5) {
+      setMessage("Please enter a brief work update before clock out.");
+      return;
+    }
+
     try {
       const coords = await fetchGeo();
       await api(`/attendance/${type}`, {
@@ -177,10 +191,14 @@ export default function App() {
         body: {
           latitude: coords.latitude,
           longitude: coords.longitude,
-          wfhCode: wfhCode || undefined
+          wfhCode: wfhCode || undefined,
+          workUpdate: type === "clock-out" ? workUpdate.trim() : undefined
         }
       });
       setMessage(`${type} successful.`);
+      if (type === "clock-out") {
+        setWorkUpdate("");
+      }
       await loadToday();
     } catch (error) {
       setMessage((error as Error).message);
@@ -420,6 +438,14 @@ export default function App() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
                 />
+                <select
+                  className="input"
+                  value={signupWorkMode}
+                  onChange={(e) => setSignupWorkMode(e.target.value as "WFH" | "WFO")}
+                >
+                  <option value="WFH">WFH</option>
+                  <option value="WFO">WFO</option>
+                </select>
                 <button className="btn btn-primary w-full" onClick={signup}>
                   Create Account
                 </button>
@@ -479,6 +505,15 @@ export default function App() {
           <div>
             <label className="text-sm">WFH Code (required when not in office mode)</label>
             <input className="input mt-1" value={wfhCode} maxLength={6} onChange={(e) => setWfhCode(e.target.value)} />
+          </div>
+          <div>
+            <label className="text-sm">Work Update (required before clock out)</label>
+            <textarea
+              className="input mt-1 min-h-24"
+              value={workUpdate}
+              onChange={(e) => setWorkUpdate(e.target.value)}
+              placeholder="Briefly describe what you completed today"
+            />
           </div>
           <div className="flex gap-2">
             <button className="btn btn-primary" onClick={() => submit("clock-in")}>

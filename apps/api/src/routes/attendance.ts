@@ -7,10 +7,17 @@ import { evaluateAttendanceGuard, extractRequestIp } from "../services/attendanc
 
 const router = Router();
 
-const bodySchema = z.object({
+const clockInBodySchema = z.object({
   latitude: z.number(),
   longitude: z.number(),
   wfhCode: z.string().length(6).optional()
+});
+
+const clockOutBodySchema = z.object({
+  latitude: z.number(),
+  longitude: z.number(),
+  wfhCode: z.string().length(6).optional(),
+  workUpdate: z.string().trim().min(5, "Work update must be at least 5 characters.")
 });
 
 function getDayBounds() {
@@ -35,7 +42,7 @@ router.get("/today", requireAuth, async (req, res) => {
 });
 
 router.post("/clock-in", requireAuth, async (req, res) => {
-  const parsed = bodySchema.safeParse(req.body);
+  const parsed = clockInBodySchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ message: "Invalid payload." });
   }
@@ -103,9 +110,9 @@ router.post("/clock-in", requireAuth, async (req, res) => {
 });
 
 router.post("/clock-out", requireAuth, async (req, res) => {
-  const parsed = bodySchema.safeParse(req.body);
+  const parsed = clockOutBodySchema.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json({ message: "Invalid payload." });
+    return res.status(400).json({ message: parsed.error.issues[0]?.message || "Invalid payload." });
   }
 
   const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
@@ -152,6 +159,7 @@ router.post("/clock-out", requireAuth, async (req, res) => {
     where: { id: attendance.id },
     data: {
       clockOutAt,
+      workUpdate: parsed.data.workUpdate,
       clockOutLat: parsed.data.latitude,
       clockOutLng: parsed.data.longitude,
       clockOutIp: requestIp,
