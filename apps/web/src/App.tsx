@@ -131,7 +131,7 @@ export default function App() {
       if (user.role === "ADMIN") {
         const today = new Date().toISOString().slice(0, 10);
         setReportDate(today);
-        await Promise.all([
+        await Promise.allSettled([
           loadStaffs(token),
           loadPendingUsers(token),
           loadReport(token, today)
@@ -159,7 +159,8 @@ export default function App() {
 
       if (result.user.role === "ADMIN") {
         const today = new Date().toISOString().slice(0, 10);
-        await Promise.all([
+        setReportDate(today);
+        await Promise.allSettled([
           loadStaffs(result.token),
           loadPendingUsers(result.token),
           loadReport(result.token, today)
@@ -235,12 +236,8 @@ export default function App() {
 
   async function loadPendingUsers(currentToken = token) {
     if (!currentToken) return;
-    try {
-      const users = await api<User[]>("/users/pending", { token: currentToken });
-      setPendingUsers(users);
-    } catch (_error) {
-      // Endpoint might not exist yet, ignore
-    }
+    const users = await api<User[]>("/users/pending", { token: currentToken });
+    setPendingUsers(users);
   }
 
   async function loadReport(currentToken = token, date = reportDate) {
