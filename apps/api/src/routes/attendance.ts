@@ -118,22 +118,6 @@ router.post("/clock-out", requireAuth, async (req, res) => {
   const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
   if (!user) return res.status(404).json({ message: "User not found." });
 
-  const requestIp = extractRequestIp(req.headers["x-forwarded-for"] as string | undefined, req.socket.remoteAddress);
-  const guard = await evaluateAttendanceGuard({
-    userId: user.id,
-    userWfhEnabled: user.wfhEnabled,
-    userHomeLatitude: user.homeLatitude,
-    userHomeLongitude: user.homeLongitude,
-    latitude: parsed.data.latitude,
-    longitude: parsed.data.longitude,
-    requestIp,
-    wfhCode: parsed.data.wfhCode
-  });
-
-  if (!guard.allowed) {
-    return res.status(403).json({ message: guard.message });
-  }
-
   const { start } = getDayBounds();
   const attendance = await prisma.attendance.findUnique({
     where: {
@@ -155,6 +139,8 @@ router.post("/clock-out", requireAuth, async (req, res) => {
   const clockOutAt = new Date();
   const totalMinutes = Math.max(0, Math.round((clockOutAt.getTime() - attendance.clockInAt.getTime()) / 60000));
 
+  const requestIp = extractRequestIp(req.headers["x-forwarded-for"] as string | undefined, req.socket.remoteAddress);
+
   const updated = await prisma.attendance.update({
     where: { id: attendance.id },
     data: {
@@ -163,7 +149,7 @@ router.post("/clock-out", requireAuth, async (req, res) => {
       clockOutLat: parsed.data.latitude,
       clockOutLng: parsed.data.longitude,
       clockOutIp: requestIp,
-      clockOutMode: guard.mode,
+      clockOutMode: attendance.clockInMode,
       totalMinutes
     }
   });

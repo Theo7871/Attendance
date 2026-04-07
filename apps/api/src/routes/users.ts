@@ -131,13 +131,13 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
 router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
   const targetId = String(req.params.id);
 
-  if (targetId === req.user!.id) {
-    return res.status(400).json({ message: "You cannot delete your own admin account." });
-  }
-
   const target = await prisma.user.findUnique({ where: { id: targetId } });
   if (!target) {
     return res.status(404).json({ message: "User not found." });
+  }
+
+  if (target.role === "ADMIN") {
+    return res.status(400).json({ message: "Admin accounts cannot be deleted." });
   }
 
   await prisma.user.delete({ where: { id: targetId } });

@@ -868,9 +868,11 @@ export default function App() {
                         Edit
                       </button>
                     )}
-                    <button className="btn btn-accent" onClick={() => deleteStaff(staff.id)}>
-                      Delete
-                    </button>
+                    {staff.role !== "ADMIN" && (
+                      <button className="btn btn-accent" onClick={() => deleteStaff(staff.id)}>
+                        Delete
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
