@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { API_BASE, api } from "./api";
 
 type User = {
@@ -121,6 +121,28 @@ export default function App() {
 
     return staffList;
   }, [staffFilter, staffList]);
+
+  useEffect(() => {
+    if (!token || !user) return;
+
+    const hydrateDashboard = async () => {
+      await loadToday(token);
+
+      if (user.role === "ADMIN") {
+        const today = new Date().toISOString().slice(0, 10);
+        setReportDate(today);
+        await Promise.all([
+          loadStaffs(token),
+          loadPendingUsers(token),
+          loadReport(token, today)
+        ]);
+      }
+    };
+
+    hydrateDashboard().catch((error) => {
+      setMessage((error as Error).message);
+    });
+  }, [token, user]);
 
   async function login() {
     try {
