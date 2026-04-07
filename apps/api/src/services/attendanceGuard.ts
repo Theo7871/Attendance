@@ -78,14 +78,7 @@ export async function evaluateAttendanceGuard(input: GuardInput): Promise<GuardR
     config.officeLongitude
   );
 
-  const isLocalRequest = input.requestIp === "127.0.0.1";
-  const officeIpMatches =
-    input.requestIp === config.officePublicIp ||
-    (process.env.NODE_ENV !== "production" && isLocalRequest);
-
-  const officeMode =
-    officeIpMatches &&
-    officeDistance <= config.officeRadiusMeters;
+  const officeMode = officeDistance <= config.officeRadiusMeters;
 
   if (officeMode) {
     return { allowed: true, mode: WorkMode.OFFICE };
