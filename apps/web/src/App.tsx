@@ -123,12 +123,8 @@ export default function App() {
   }, [staffFilter, staffList]);
 
   const pendingApprovalUsers = useMemo(() => {
-    const fromStaffList = staffList.filter((staff) => staff.isApproved !== true);
-    if (fromStaffList.length > 0) {
-      return fromStaffList;
-    }
     return pendingUsers;
-  }, [staffList, pendingUsers]);
+  }, [pendingUsers]);
 
   function resetSessionWithMessage(text: string) {
     setToken(null);
@@ -261,7 +257,6 @@ export default function App() {
     try {
       const users = await api<User[]>("/users", { token: currentToken });
       setStaffList(users);
-      setPendingUsers(users.filter((x) => x.isApproved !== true));
     } catch (error) {
       const msg = (error as Error).message;
       if (/invalid token|missing bearer token/i.test(msg)) {
@@ -632,7 +627,10 @@ export default function App() {
           </div>
 
           <div className="card p-5 space-y-3">
-            <h3 className="text-lg font-semibold">Pending User Approvals ({pendingApprovalUsers.length})</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Pending User Approvals ({pendingApprovalUsers.length})</h3>
+              <button className="btn" onClick={() => loadPendingUsers()}>Refresh</button>
+            </div>
             {pendingApprovalUsers.length === 0 ? (
               <p className="text-sm text-slate-600">No pending approvals.</p>
             ) : (
