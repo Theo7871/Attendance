@@ -16,7 +16,7 @@ router.post("/wfh-code/generate", requireAuth, requireAdmin, async (req, res) =>
   const plainCode = generateSixDigitCode();
   const codeHash = await bcrypt.hash(plainCode, 10);
 
-  const validFrom = dayjs().startOf("day").toDate();
+  const validFrom = new Date();
   const expiresAt = dayjs(validFrom).add(config.wfhCodeTtlHours, "hour").toDate();
 
   await prisma.dailyWfhCode.create({
