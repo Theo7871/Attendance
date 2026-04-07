@@ -1,4 +1,7 @@
-const rawApiBase = import.meta.env.VITE_API_BASE || "http://localhost:4000";
+const rawApiBase = import.meta.env.VITE_API_BASE ||
+  (typeof window !== "undefined" && /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname)
+    ? "http://localhost:4000"
+    : "/api");
 const normalizedApiBase = rawApiBase.replace(/\/+$/, "");
 const API_BASE = normalizedApiBase.endsWith("/api") ? normalizedApiBase : `${normalizedApiBase}/api`;
 
