@@ -446,6 +446,27 @@ export default function App() {
     }
   }
 
+  function copyReport() {
+    const header = ["Name", "Email", "Clock In", "Clock Out", "Hours", "Mode", "Work Update"].join("\t");
+    const rows = reportRows
+      .map((row) =>
+        [
+          row.user?.fullName || "-",
+          row.user?.email || "-",
+          row.clockInAt ? new Date(row.clockInAt).toLocaleTimeString() : "-",
+          row.clockOutAt ? new Date(row.clockOutAt).toLocaleTimeString() : "-",
+          ((row.totalMinutes || 0) / 60).toFixed(2),
+          row.clockOutMode || row.clockInMode || "-",
+          row.workUpdate || "-"
+        ].join("\t")
+      )
+      .join("\n");
+    navigator.clipboard
+      .writeText(`Staff Attendance Report - ${reportDate}\n${header}\n${rows}`)
+      .then(() => setMessage("Report copied to clipboard."))
+      .catch(() => setMessage("Failed to copy report."));
+  }
+
   async function exportCsv() {
     if (!token) return;
     try {
@@ -603,7 +624,10 @@ export default function App() {
       {user.role === "ADMIN" && (
         <div className="space-y-4">
           <div className="card p-5 space-y-3">
-            <h3 className="text-lg font-semibold">Staff Attendance Report</h3>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-lg font-semibold">Staff Attendance Report</h3>
+              <button className="btn" onClick={copyReport}>Copy Report</button>
+            </div>
             <div className="flex flex-wrap gap-2 items-center">
               <input className="input" type="date" value={reportDate} onChange={(e) => setReportDate(e.target.value)} />
               <button className="btn btn-primary" onClick={() => loadReport(token, reportDate)}>
@@ -632,7 +656,7 @@ export default function App() {
                       <td className="py-2">{row.clockOutAt ? new Date(row.clockOutAt).toLocaleTimeString() : "-"}</td>
                       <td className="py-2">{((row.totalMinutes || 0) / 60).toFixed(2)}</td>
                       <td className="py-2">{row.clockOutMode || row.clockInMode || "-"}</td>
-                      <td className="py-2 max-w-64 truncate" title={row.workUpdate || ""}>{row.workUpdate || "-"}</td>
+                      <td className="py-2 whitespace-normal break-words min-w-[10rem] max-w-xs">{row.workUpdate || "-"}</td>
                     </tr>
                   ))}
                 </tbody>
